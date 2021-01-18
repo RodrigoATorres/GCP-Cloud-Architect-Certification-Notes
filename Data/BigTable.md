@@ -404,7 +404,7 @@ https://cloud.google.com/bigtable/docs/replication-settings
   - faster and more predictable
   - much higher throughput
   - faster individual row reads
-  - const increase is minimal
+  - const increase is minimal ($0.17 GB/mo $0.026 GB/mo)
 - HDD storage is sometimes appropriate for very large data sets (>10 TB) that are not latency-sensitive or are infrequently accessed.
   - use cases:
     - You expect to store at least 10 TB of data.
@@ -412,5 +412,78 @@ https://cloud.google.com/bigtable/docs/replication-settings
     - Your workload falls into one of the following categories:
       - Batch workloads with scans and writes, and no more than occasional random reads of a small number of rows.
       - Data archival, where you write very large amounts of data and rarely read that data.
+
+## Understanding Cloud Bigtable performance
+
+- Cloud Bigtable delivers highly predictable performance that is linearly scalable
+- In general, a cluster's performance scales linearly as you add nodes to the cluster
+
+![](../_resources/2021-01-05-17-26-33.png)
+
+### Planning your Cloud Bigtable capacity
+
+- Trade-off between high throughput and low latency
+  - In general, Cloud Bigtable offers optimal latency when the CPU load for a cluster is under 70%
+  - For latency-sensitive applications, however, we recommend that you plan at least 2x capacity for your application's max Cloud Bigtable QPS
+- Run your typical workloads against Cloud Bigtable
+  - Always run your own typical workloads against a Cloud Bigtable cluster when doing capacity planning, so you can figure out the best resource allocation for your applications.
+  - You can follow the PerfKitBenchmarker tutorial for Cloud Bigtable to create tests for your own workloads
+    - tune the parameters in the benchmarking config yaml:
+      - Total size of your table. This can be proportional, but use at least 100GB.
+      - Row data shape (row key size, number of columns, row data sizes, etc.)
+      - Data access pattern (row key distribution)
+      - Mixture of reads vs. writes
+
+### Causes of slower performance
+
+- table's schema is not designed correctly
+- rows contain large amounts of data
+- rows contain a very large number of cells
+- cluster doesn't have enough nodes
+- cluster was scaled up or scaled down recently
+  - it ca take up to 20 min to significant imporvement
+  - reduce no more than 10% every 10 min
+- The Cloud Bigtable cluster uses HDD disks
+- There are issues with the network connection
+
+### Replication and performance
+
+- Read throughput
+  - improves (especially when using multi-clustering)
+  - latency reduces when data is closer to user
+- Write throughput
+  - does not improve write performance
+  - it might go down
+- Latency
+  - Replicated clusters in different regions will typically have higher replication latency than replicated clusters in the same region.
+
+
+### How Cloud Bigtable optimizes your data over time
+
+- Strategies:
+1. Cloud Bigtable tries to store roughly the same amount of data on each Cloud Bigtable node.
+2. Cloud Bigtable tries to distribute reads and writes equally across all Cloud Bigtable nodes.
+- These strategies may conflict with one another.
+- As part of this process, Cloud Bigtable might also split a tablet into two or more smaller tablets, either to reduce a tablet's size or to isolate hot rows within an existing tablet.
+
+![](../_resources/2021-01-05-17-44-06.png)
+![](../_resources/2021-01-05-17-44-39.png)
+
+### Testing performance with Cloud Bigtable
+
+- Test with enough data
+- Test with a signle table
+- Stay below recommended storage utiliztion per node
+- Before test, run a hevy pre-tes for several minutes
+- Run test for at least 10 min
+
+### Troubleshooting performance issues
+
+- Look at the Key Visualizer scans for your table
+- Try commenting out the code that performs Cloud Bigtable reads and writes
+- Ensure that you're creating as few clients as possible
+- Make sure you're reading and writing many different rows in your table
+- Verify that you see approximately the same performance for reads and writes
+- Use the right type of write requests for your data
 
 find . -type f -name '**.md' -print0 | xargs -0 -n2 -P2 -I{} pandoc {} -f markdown tput/{}.pdf
