@@ -131,3 +131,33 @@ Using Cloud Tasks, you can dispatch asynchronous work items with the following c
   - Enable task deduplication
 
 ### Cloud Functions
+
+- serverless execution environment for building and connecting cloud services
+- write simple, single-purpose functions that are attached to events emitted from your cloud infrastructure and services
+  - function is triggered when an event being watched is fired
+  - JavaScript, Python 3, Go, or Java
+- fully managed environmen
+
+### Connect and extend cloud services
+
+- connective layer of logic that lets you write code to connect and extend cloud services
+  - Listen and respond to
+    - a file upload to Cloud Storage
+    - a log change
+    - an incoming message on a Pub/Sub topic
+
+### Events and triggers
+
+- Cloud events are things that happen in your cloud environment
+  - changes to data in a database
+  - files added to a storage system
+  - new virtual machine instance being created.
+- You create a response to an event with a trigger
+
+### Serverless
+
+- a function can scale from a few invocations a day to many millions of invocations without any work from you
+
+### Use cases
+
+![](../_resources/2021-01-10-18-38-58.png)
